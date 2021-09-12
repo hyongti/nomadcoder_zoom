@@ -19,4 +19,9 @@ const server = http.createServer(app);
 // http 서버 위에 webSocket 서버를 만듦.
 const wss = new WebSocket.Server({ server });
 
+function handleConnection(socket) {
+  console.log(socket); // 여기서의 socket은 연결된 브라우저
+}
+wss.on("connection", handleConnection);
+
 server.listen(3000, handleListen);
