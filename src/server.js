@@ -25,6 +25,7 @@ wsServer.on("connection", (socket) => {
   socket.on("enter_room", (roomName, done) => {
     socket.join(roomName);
     done();
+    socket.to(roomName).emit("welcome"); // 프론트에서 이 emit에 반응해야 함.
   });
 });
 
