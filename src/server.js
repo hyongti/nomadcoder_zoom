@@ -27,6 +27,15 @@ wsServer.on("connection", (socket) => {
     done();
     socket.to(roomName).emit("welcome"); // 프론트에서 이 emit에 반응해야 함.
   });
+  // disconnecting !== disconnect
+  // 클라이언트가 서버와 연결이 끊어지기 전에 마지막 "굿바이" 메세지를 보낼 수 있음
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+  });
+  socket.on("new_message", (msg, room, done) => {
+    socket.to(room).emit("new_message", msg);
+    done();
+  });
 });
 
 // const onSocketClose = () => {
