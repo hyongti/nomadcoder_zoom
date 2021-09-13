@@ -17,10 +17,17 @@ function addMessage(message) {
 
 function handleMessageSubmit(event) {
   event.preventDefault();
-  const input = room.querySelector("input");
+  const input = room.querySelector("#msg input");
   socket.emit("new_message", input.value, roomName, () => {
     addMessage(`You: ${input.value}`);
   });
+}
+
+function handleNicknameSubmit(event) {
+  event.preventDefault();
+  const input = room.querySelector("#name input");
+  socket.emit("nickname", input.value);
+  input.value = "";
 }
 
 function showRoom() {
@@ -29,16 +36,15 @@ function showRoom() {
   room.hidden = false;
   const h3 = room.querySelector("h3");
   h3.innerText = `Room ${roomName}`;
-  const form = room.querySelector("form");
-  form.addEventListener("submit", handleMessageSubmit);
+  const msgForm = room.querySelector("#msg");
+  const nameForm = room.querySelector("#name");
+  msgForm.addEventListener("submit", handleMessageSubmit);
+  nameForm.addEventListener("submit", handleNicknameSubmit);
 }
 
 function handleRoomSubmit(event) {
   event.preventDefault();
   const input = form.querySelector("input");
-  // WebSocket에서는 string을 send했는데..
-  // socket.io는 객체도 전송할 수 있고, 원하는 event(ex. enter_room)도 전송할 수 있음..
-  // 심지어 함수도 보낼 수 있음!!!!!!!!!!!!!
   socket.emit("enter_room", input.value, showRoom);
   roomName = input.value;
   input.value = "";
@@ -46,10 +52,10 @@ function handleRoomSubmit(event) {
 
 form.addEventListener("submit", handleRoomSubmit);
 
-socket.on("welcome", () => addMessage("Someone joined!"));
+socket.on("welcome", (nickname) => addMessage(`${nickname} joined!`));
 
-socket.on("bye", () => {
-  addMessage("Someone left T_T");
+socket.on("bye", (nickname) => {
+  addMessage(`${nickname} left T_T`);
 });
 
 socket.on("new_message", addMessage);
