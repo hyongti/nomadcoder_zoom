@@ -19,15 +19,19 @@ const server = http.createServer(app);
 // http 서버 위에 webSocket 서버를 만듦.
 const wss = new WebSocket.Server({ server });
 
+const onSocketClose = () => {
+  console.log("Disconnected from the Browser ❌"); // 내(Server) 터미널에 출력됨
+};
+
+const sockets = [];
+
 wss.on("connection", (socket) => {
+  sockets.push(socket);
   console.log("Connected to Browser ✅");
-  socket.on("close", () => {
-    console.log("Disconnected from the Browser ❌"); // 내(Server) 터미널에 출력됨
+  socket.on("close", onSocketClose);
+  socket.on("message", (message) => { // => 여깄는 메시지는 닉네임이나 진짜 메시지나 구분을 못함.
+    sockets.forEach((aSocket) => aSocket.send(message));
   });
-  socket.on("message", (message) => {
-    console.log(message.toString("utf8"));
-  });
-  socket.send("hello!!!"); // => 프론트엔드에서 받아야 함
 });
 
 server.listen(3000, handleListen);
