@@ -27,10 +27,20 @@ const sockets = [];
 
 wss.on("connection", (socket) => {
   sockets.push(socket);
+  socket["nickname"] = "anonymous";
   console.log("Connected to Browser ✅");
   socket.on("close", onSocketClose);
-  socket.on("message", (message) => { // => 여깄는 메시지는 닉네임이나 진짜 메시지나 구분을 못함.
-    sockets.forEach((aSocket) => aSocket.send(message));
+  socket.on("message", (message) => {
+    // => 여깄는 메시지는 닉네임이나 진짜 메시지나 구분을 못함.
+    const msgObject = JSON.parse(message); // string 을 js object로 바꿔줌.
+    switch (msgObject.type) {
+      case "new_message":
+        sockets.forEach((aSocket) =>
+          aSocket.send(`${socket.nickname} : ${msgObject.payload}`)
+        );
+      case "nickname":
+        socket["nickname"] = msgObject .payload;
+    }
   });
 });
 
