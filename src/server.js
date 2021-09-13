@@ -19,9 +19,15 @@ const server = http.createServer(app);
 // http 서버 위에 webSocket 서버를 만듦.
 const wss = new WebSocket.Server({ server });
 
-function handleConnection(socket) {
-  console.log(socket); // 여기서의 socket은 연결된 브라우저
-}
-wss.on("connection", handleConnection);
+wss.on("connection", (socket) => {
+  console.log("Connected to Browser ✅");
+  socket.on("close", () => {
+    console.log("Disconnected from the Browser ❌"); // 내(Server) 터미널에 출력됨
+  });
+  socket.on("message", (message) => {
+    console.log(message.toString("utf8"));
+  });
+  socket.send("hello!!!"); // => 프론트엔드에서 받아야 함
+});
 
 server.listen(3000, handleListen);
