@@ -13,6 +13,7 @@ let muted = false;
 let cameraOff = false;
 let roomName;
 let myPeerConnection;
+let myDataChannel;
 
 async function getCameras() {
   try {
@@ -37,12 +38,14 @@ async function getMedia(deviceId) {
   // deviceId가 없을 때 호출(cameras를 만들기 전)
   const initialConstraints = {
     audio: true,
-    video: { facingMode: "user" },
+    // video: { facingMode: "user" },
+    video: false,
   };
   // deviceId가 있을 때 호출
   const cameraConstraints = {
     audio: true,
-    video: { deviceId: { exact: deviceId } },
+    // video: { deviceId: { exact: deviceId } },
+    video: false,
   };
   try {
     myStream = await navigator.mediaDevices.getUserMedia(
@@ -126,6 +129,9 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 
 // 먼저 접속해있던 브라우저에서 실행
 socket.on("welcome", async () => {
+  myDataChannel = myPeerConnection.createDataChannel("chat");
+  myDataChannel.addEventListener("message", (event) => console.log(event.data));
+  console.log("made data channel");
   const offer = await myPeerConnection.createOffer();
   // 내 로컬 description을 설정하고 서버로 이 description을 보냄
   myPeerConnection.setLocalDescription(offer);
@@ -135,6 +141,12 @@ socket.on("welcome", async () => {
 
 // 나중에 들어온 브라우저에서 실행
 socket.on("offer", async (offer) => {
+  myPeerConnection.addEventListener("datachannel", (event) => {
+    myDataChannel = event.channel;
+    myDataChannel.addEventListener("message", (event) =>
+      console.log(event.data)
+    );
+  });
   // 나중에 들어온 브라우저에서 offer 이벤트와 함께 상대방 로컬 description을 받으면 원격 description을 설정하고,
   console.log("received the offer");
   myPeerConnection.setRemoteDescription(offer);
