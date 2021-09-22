@@ -85,6 +85,14 @@ function handleCameraClick() {
 
 async function handelCameraChange() {
   await getMedia(camerasSelect.value);
+  // 위에서 myStream의 videoTrack을 바꿨음!
+  const videoTrack = myStream.getVideoTracks()[0];
+  if (myPeerConnection) {
+    const videoSender = myPeerConnection
+      .getSenders()
+      .find((sender) => sender.track.kind === "video");
+    videoSender.replaceTrack(videoTrack); // 보내는 트랙을 바꾼 트랙으로 바꿔주자
+  }
 }
 
 muteBtn.addEventListener("click", handleMuteClick);
