@@ -128,23 +128,43 @@ socket.on("welcome", async () => {
 // 나중에 들어온 브라우저에서 실행
 socket.on("offer", async (offer) => {
   // 나중에 들어온 브라우저에서 offer 이벤트와 함께 상대방 로컬 description을 받으면 원격 description을 설정하고,
+  console.log("received the offer");
   myPeerConnection.setRemoteDescription(offer);
   const answer = await myPeerConnection.createAnswer();
   // 상대방 offer에 대한 내 대답을 내 로컬 description로 설정한 뒤에 서버에 다시 보냄
   myPeerConnection.setLocalDescription(answer);
   socket.emit("answer", answer, roomName);
+  console.log("sent the answer");
+});
+
+socket.on("ice", (ice) => {
+  console.log("received candidate");
+  myPeerConnection.addIceCandidate(ice);
 });
 
 // 다시 먼저 접속해있던 브라우저에서 실행
 socket.on("answer", (answer) => {
   // 내가 보낸 offer에 대한 answer가 오면 원격 description을 answer로 설정
+  console.log("received the answer");
   myPeerConnection.setRemoteDescription(answer);
 });
 
 // RTC code
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection();
+  myPeerConnection.addEventListener("icecandidate", handleIce);
+  myPeerConnection.addEventListener("addstream", handleAddStream);
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
+
+function handleIce(data) {
+  console.log("sent candidate");
+  socket.emit("ice", data.candidate, roomName);
+}
+
+function handleAddStream(data) {
+  const peerFace = document.getElementById("peerFace");
+  peerFace.srcObject = data.stream;
 }
